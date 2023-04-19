@@ -363,7 +363,7 @@ public:
     ShaderDiskCache disk_cache;
 };
 
-ShaderProgramManager::ShaderProgramManager(Frontend::EmuWindow& emu_window_, Driver& driver,
+ShaderProgramManager::ShaderProgramManager(Frontend::EmuWindow& emu_window_, Driver& driver_,
                                            bool separable)
     : emu_window{emu_window_}, driver{driver_},
       strict_context_required{emu_window.StrictContextRequired()}, impl{std::make_unique<Impl>(
