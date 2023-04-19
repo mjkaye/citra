@@ -208,6 +208,10 @@ public:
         return active_config;
     }
 
+    bool StrictContextRequired() const {
+        return strict_context_required;
+    }
+
     /**
      * Requests the internal configuration to be replaced by the specified argument at some point in
      * the future.
@@ -273,6 +277,7 @@ protected:
     }
 
     bool is_secondary{};
+    bool strict_context_required{};
     WindowSystemInfo window_info;
 
 private:

@@ -33,6 +33,8 @@
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
+static Frontend::WindowSystemType GetWindowSystemType();
+
 EmuThread::EmuThread(Frontend::GraphicsContext& core_context) : core_context(core_context) {}
 
 EmuThread::~EmuThread() = default;
@@ -284,6 +286,9 @@ class OpenGLRenderWidget : public RenderWidget {
 public:
     explicit OpenGLRenderWidget(GRenderWindow* parent, bool is_secondary)
         : RenderWidget(parent), is_secondary(is_secondary) {
+        if (GetWindowSystemType() == Frontend::WindowSystemType::Wayland) {
+            setAttribute(Qt::WA_DontCreateNativeAncestors);
+        }
         windowHandle()->setSurfaceType(QWindow::OpenGLSurface);
     }
 
@@ -314,7 +319,10 @@ private:
 class VulkanRenderWidget : public RenderWidget {
 public:
     explicit VulkanRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
-        windowHandle()->setSurfaceType(QWindow::VulkanSurface);
+      if (GetWindowSystemType() == Frontend::WindowSystemType::Wayland) {
+          setAttribute(Qt::WA_DontCreateNativeAncestors);
+      }
+      windowHandle()->setSurfaceType(QWindow::VulkanSurface);
     }
 };
 
@@ -375,6 +383,7 @@ GRenderWindow::GRenderWindow(QWidget* parent_, EmuThread* emu_thread, bool is_se
     setLayout(layout);
 
     this->setMouseTracking(true);
+    strict_context_required = QGuiApplication::platformName() == QStringLiteral("wayland");
 
     GMainWindow* parent = GetMainWindow();
     connect(this, &GRenderWindow::FirstFrameDisplayed, parent, &GMainWindow::OnLoadComplete);
@@ -649,6 +658,12 @@ void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal
 }
 
 bool GRenderWindow::InitializeOpenGL() {
+    if (!QOpenGLContext::supportsThreadedOpenGL()) {
+        QMessageBox::warning(this, tr("OpenGL not available!"),
+                             tr("OpenGL shared contexts are not supported."));
+        return false;
+    }
+
     // TODO: One of these flags might be interesting: WA_OpaquePaintEvent, WA_NoBackground,
     // WA_DontShowOnScreen, WA_DeleteOnClose
     auto child = new OpenGLRenderWidget(this, is_secondary);

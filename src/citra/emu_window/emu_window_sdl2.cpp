@@ -65,7 +65,7 @@ void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
 
 std::pair<unsigned, unsigned> EmuWindow_SDL2::TouchToPixelPos(float touch_x, float touch_y) const {
     int w, h;
-    SDL_GetWindowSize(render_window, &w, &h);
+    SDL_GL_GetDrawableSize(render_window, &w, &h);
 
     touch_x *= w;
     touch_y *= h;
@@ -110,7 +110,7 @@ void EmuWindow_SDL2::RequestClose() {
 
 void EmuWindow_SDL2::OnResize() {
     int width, height;
-    SDL_GetWindowSize(render_window, &width, &height);
+    SDL_GL_GetDrawableSize(render_window, &width, &height);
     UpdateCurrentFramebufferLayout(width, height);
 }
 
