@@ -173,6 +173,8 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen, bool is_secondary) : EmuWindow(i
         exit(1);
     }
 
+    strict_context_required = std::strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0;
+
     dummy_window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
                                     SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL);
 
