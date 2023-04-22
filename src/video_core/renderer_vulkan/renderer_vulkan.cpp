@@ -107,8 +107,9 @@ RendererVulkan::RendererVulkan(Core::System& system_, Frontend::EmuWindow& windo
       instance{window, Settings::values.physical_device.GetValue()}, scheduler{instance,
                                                                                renderpass_cache},
       renderpass_cache{instance, scheduler}, desc_manager{instance, scheduler},
-      runtime{instance, scheduler, renderpass_cache, desc_manager}, swapchain{instance, scheduler,
-                                                                              renderpass_cache},
+      runtime{instance, scheduler, renderpass_cache, desc_manager},
+      swapchain{instance, scheduler, render_window.GetFramebufferLayout().width,
+                render_window.GetFramebufferLayout().height, renderpass_cache},
       vertex_buffer{instance, scheduler, vk::BufferUsageFlagBits::eVertexBuffer,
                     VERTEX_BUFFER_SIZE},
       rasterizer{
@@ -961,7 +962,20 @@ void RendererVulkan::DrawScreens(Frame* frame, const Layout::FramebufferLayout& 
 }
 
 void RendererVulkan::SwapBuffers() {
+    bool has_been_recreated = false;
+    const auto recreate_swapchain = [&](u32 width, u32 height) {
+        if (!has_been_recreated) {
+            has_been_recreated = true;
+            scheduler.Finish();
+        }
+        swapchain.Create({}, width, height);
+    };
     const auto& layout = render_window.GetFramebufferLayout();
+    if (swapchain.NeedsRecreation() || swapchain.GetWidth() != layout.width ||
+        swapchain.GetHeight() != layout.height) {
+        recreate_swapchain(layout.width, layout.height);
+    }
+
     PrepareRendertarget();
     RenderScreenshot();
 

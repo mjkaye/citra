@@ -15,13 +15,13 @@
 namespace Vulkan {
 
 Swapchain::Swapchain(const Instance& instance, Scheduler& scheduler,
-                     RenderpassCache& renderpass_cache)
+                     u32 width_, u32 height_, RenderpassCache& renderpass_cache)
     : instance{instance}, scheduler{scheduler},
       renderpass_cache{renderpass_cache}, surface{instance.GetSurface()} {
     FindPresentFormat();
     SetPresentMode();
     renderpass_cache.CreatePresentRenderpass(surface_format.format);
-    Create();
+    Create({}, width_, height_);
 }
 
 Swapchain::~Swapchain() {
@@ -29,9 +29,11 @@ Swapchain::~Swapchain() {
     instance.GetInstance().destroySurfaceKHR(surface);
 }
 
-void Swapchain::Create(vk::SurfaceKHR new_surface) {
+  void Swapchain::Create(vk::SurfaceKHR new_surface, u32 width_, u32 height_) {
     needs_recreation = true; ///< Set this for the present thread to wait on
     Destroy();
+    width = width_;
+    height = height_;
 
     if (new_surface) {
         instance.GetInstance().destroySurfaceKHR(surface);
@@ -193,8 +195,11 @@ void Swapchain::SetSurfaceProperties() {
 
     extent = capabilities.currentExtent;
     if (capabilities.currentExtent.width == std::numeric_limits<u32>::max()) {
-        LOG_CRITICAL(Render_Vulkan, "Device reported no surface extent");
-        UNREACHABLE();
+        // Wayland
+        extent.width = std::max(capabilities.minImageExtent.width,
+                                std::min(capabilities.maxImageExtent.width, width));
+        extent.height = std::max(capabilities.minImageExtent.height,
+                                 std::min(capabilities.maxImageExtent.height, height));
     }
 
     LOG_INFO(Render_Vulkan, "Creating {}x{} surface", extent.width, extent.height);

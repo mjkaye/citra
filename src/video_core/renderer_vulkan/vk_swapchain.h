@@ -17,11 +17,12 @@ class RenderpassCache;
 
 class Swapchain {
 public:
-    Swapchain(const Instance& instance, Scheduler& scheduler, RenderpassCache& renderpass_cache);
+    Swapchain(const Instance& instance, Scheduler& scheduler, u32 width, u32 height,
+              RenderpassCache& renderpass_cache);
     ~Swapchain();
 
     /// Creates (or recreates) the swapchain with a given size.
-    void Create(vk::SurfaceKHR new_surface = {});
+    void Create(vk::SurfaceKHR new_surface = {}, u32 width = 1, u32 height = 1);
 
     /// Acquires the next image in the swapchain.
     bool AcquireNextImage();
@@ -72,6 +73,14 @@ public:
         return present_ready[image_index];
     }
 
+    u32 GetWidth() const {
+        return width;
+    }
+
+    u32 GetHeight() const {
+        return height;
+    }
+
 private:
     /// Selects the best available swapchain image format
     void FindPresentFormat();
@@ -108,6 +117,8 @@ private:
     u32 image_count = 0;
     u32 image_index = 0;
     u32 frame_index = 0;
+    u32 width = 1;
+    u32 height = 1;
     bool needs_recreation = true;
 };
 
