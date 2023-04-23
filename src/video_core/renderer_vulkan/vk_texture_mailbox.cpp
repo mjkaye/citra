@@ -166,9 +166,9 @@ Frame* PresentMailbox::GetRenderFrame() {
     return frame;
 }
 
-void PresentMailbox::UpdateSurface(vk::SurfaceKHR surface) {
+void PresentMailbox::UpdateSurface(u32 width, u32 height, vk::SurfaceKHR surface) {
     std::scoped_lock lock{swapchain_mutex};
-    swapchain.Create(surface);
+    swapchain.Create(width, height, surface);
     swapchain_cv.notify_one();
 }
 
@@ -203,14 +203,14 @@ void PresentMailbox::CopyToSwapchain(Frame* frame) {
     const bool use_vsync = Settings::values.use_vsync_new.GetValue();
     if (vsync_enabled != use_vsync) [[unlikely]] {
         vsync_enabled = use_vsync;
-        RecreateSwapchain();
+        RecreateSwapchain(frame->width, frame->height);
     }
 
     while (!swapchain.AcquireNextImage()) {
 #if ANDROID
         swapchain_cv.wait(lock, [this]() { return !swapchain.NeedsRecreation(); });
 #else
-        RecreateSwapchain();
+        RecreateSwapchain(frame->width, frame->height);
 #endif
     }
 
@@ -338,10 +338,10 @@ void PresentMailbox::CopyToSwapchain(Frame* frame) {
     swapchain.Present();
 }
 
-void PresentMailbox::RecreateSwapchain() {
+void PresentMailbox::RecreateSwapchain(u32 width, u32 height) {
     std::scoped_lock lock{scheduler.QueueMutex()};
     graphics_queue.waitIdle();
-    swapchain.Create();
+    swapchain.Create(width, height);
 }
 
 } // namespace Vulkan

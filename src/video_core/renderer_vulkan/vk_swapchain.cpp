@@ -21,7 +21,7 @@ Swapchain::Swapchain(const Instance& instance, Scheduler& scheduler,
     FindPresentFormat();
     SetPresentMode();
     renderpass_cache.CreatePresentRenderpass(surface_format.format);
-    Create({}, width_, height_);
+    Create(width_, height_);
 }
 
 Swapchain::~Swapchain() {
@@ -29,7 +29,7 @@ Swapchain::~Swapchain() {
     instance.GetInstance().destroySurfaceKHR(surface);
 }
 
-  void Swapchain::Create(vk::SurfaceKHR new_surface, u32 width_, u32 height_) {
+  void Swapchain::Create(u32 width_, u32 height_, vk::SurfaceKHR new_surface) {
     needs_recreation = true; ///< Set this for the present thread to wait on
     Destroy();
     width = width_;

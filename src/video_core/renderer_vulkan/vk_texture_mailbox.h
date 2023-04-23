@@ -41,14 +41,14 @@ public:
     ~PresentMailbox();
 
     Frame* GetRenderFrame();
-    void UpdateSurface(vk::SurfaceKHR surface);
+    void UpdateSurface(u32 width, u32 height, vk::SurfaceKHR surface);
     void ReloadFrame(Frame* frame, u32 width, u32 height);
     void Present(Frame* frame);
 
 private:
     void PresentThread(std::stop_token token);
     void CopyToSwapchain(Frame* frame);
-    void RecreateSwapchain();
+    void RecreateSwapchain(u32 width, u32 height);
 
     struct FrameQueue {
         void Push(Frame* frame) {

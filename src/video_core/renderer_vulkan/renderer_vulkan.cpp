@@ -968,7 +968,7 @@ void RendererVulkan::SwapBuffers() {
             has_been_recreated = true;
             scheduler.Finish();
         }
-        swapchain.Create({}, width, height);
+        swapchain.Create(width, height);
     };
     const auto& layout = render_window.GetFramebufferLayout();
     if (swapchain.NeedsRecreation() || swapchain.GetWidth() != layout.width ||
@@ -1186,7 +1186,8 @@ void RendererVulkan::RenderScreenshot() {
 void RendererVulkan::NotifySurfaceChanged() {
     scheduler.Finish();
     vk::SurfaceKHR new_surface = CreateSurface(instance.GetInstance(), render_window);
-    mailbox->UpdateSurface(new_surface);
+    mailbox->UpdateSurface(render_window.GetFramebufferLayout().width,
+                           render_window.GetFramebufferLayout().height, new_surface);
 }
 
 void RendererVulkan::Report() const {
